@@ -320,7 +320,7 @@
 #define TAG "av3a_decoder" // 这个是自定义的LOG的标识   
 #define LOGD(format, ...) //__android_log_print(ANDROID_LOG_DEBUG,TAG ,format,##__VA_ARGS__) // 定义LOGD类型  
 #else
-#define LOGD(format, ...) printf(format, ##__VA_ARGS__)
+#define LOGD(format, ...) /* debug logging disabled on the library path (was printf to stdout) */
 #endif
 
 #endif

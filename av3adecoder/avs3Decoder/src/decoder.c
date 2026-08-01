@@ -188,7 +188,6 @@ AVS3DecoderHandle avs3_create_decoder()
 // 	hAvs3Dec->pLog = freopen(fn, "w+", stdout);
 // 	setvbuf(stdout, NULL, _IONBF, 0);
 //	ASLOG_MsgA(3, "avs3_create_decoder %p\n", hAvs3Dec);
-	printf("avs3_create_decoder %p\n", hAvs3Dec);
 #endif
 	LOGD("avs3_create_decoder %p\n", hAvs3Dec);
 	return hAvs3Dec;

@@ -14,6 +14,9 @@ with decoder fixes.
 
 ## Decoder fixes
 
+- debug prints silenced on the library path (SDK left printf-based logging
+  enabled, polluting stdout of every CLI consumer)
+
 ## Licensing
 
 Research/educational use only; do not redistribute binaries.
