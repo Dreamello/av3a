@@ -240,6 +240,26 @@ unsigned long Avs3SynthOutput(float synth[MAX_CHANNELS][BLOCK_LEN_LONG], const s
 }
 
 
+/* Interleaved float synthesis output without saturation.
+   Output is normalized to full scale = 1.0f (divide by 32768), but values
+   may legitimately exceed +/-1.0f when the encoded program material is
+   mastered at or above full scale; downstream float pipelines can apply
+   limiting/attenuation without losing waveform information. */
+void Avs3SynthOutputFloat(float synth[MAX_CHANNELS][BLOCK_LEN_LONG], const short output_frame, const short n_channels, float *synth_out)
+{
+    short i, n;
+    const float scale = 1.0f / 32768.0f;
+
+    for (n = 0; n < n_channels; n++)
+    {
+        for (i = 0; i < output_frame; i++)
+        {
+            synth_out[i*n_channels + n] = synth[n][i] * scale;
+        }
+    }
+}
+
+
 void MdctSpectrumInterleave(
     float *mdctSpectrum,
     int16_t length,

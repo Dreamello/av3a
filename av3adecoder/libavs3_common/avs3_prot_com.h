@@ -104,6 +104,8 @@ void VMultC(const float x[], const float c, float y[], const short N);
 
 unsigned long Avs3SynthOutput(float synth[MAX_CHANNELS][BLOCK_LEN_LONG], const short output_frame, const short n_channels, short *synth_out);
 
+void Avs3SynthOutputFloat(float synth[MAX_CHANNELS][BLOCK_LEN_LONG], const short output_frame, const short n_channels, float *synth_out);
+
 void Avs3HoaInitConfig(AVS3_HOA_CONFIG_DATA_HANDLE hConfig, const short numChansInput, const short lenFrame, const short coreBwidth, const long totalBitrate);
 
 void HoaBitrateConfigTable(AVS3_HOA_CONFIG_DATA_HANDLE hConfig);

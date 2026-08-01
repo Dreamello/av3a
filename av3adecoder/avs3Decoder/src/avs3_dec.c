@@ -223,3 +223,47 @@ void Avs3Decode(AVS3DecoderHandle hAvs3Dec, short data[MAX_CHANNELS * FRAME_LEN]
 
     return;
 }
+
+void Avs3DecodeFloat(AVS3DecoderHandle hAvs3Dec, float data[MAX_CHANNELS * FRAME_LEN])
+{
+    float synth[MAX_CHANNELS][FRAME_LEN];
+    const short frameLength = hAvs3Dec->frameLength;
+    const short nChans = hAvs3Dec->numChansOutput;
+
+    // Metadata decoder
+    Avs3MetadataDec(hAvs3Dec);
+
+    if (hAvs3Dec->avs3CodecFormat == AVS3_MONO_FORMAT)
+    {
+        Avs3MonoDec(hAvs3Dec, synth);
+    }
+    else if (hAvs3Dec->avs3CodecFormat == AVS3_STEREO_FORMAT)
+    {
+        if (hAvs3Dec->hDecStereo->useMcr == 0) {
+            // MS stereo decoding
+            Avs3StereoDec(hAvs3Dec, synth);
+        }
+        else {
+            // MCR stereo decoding
+            Avs3StereoMcrDec(hAvs3Dec, synth);
+        }
+    }
+    else if (hAvs3Dec->avs3CodecFormat == AVS3_MC_FORMAT)
+    {
+        Avs3McDec(hAvs3Dec, synth);
+    }
+    else if (hAvs3Dec->avs3CodecFormat == AVS3_HOA_FORMAT)
+    {
+        Avs3HoaDec(hAvs3Dec, synth);
+    }
+    else if (hAvs3Dec->avs3CodecFormat == AVS3_MIX_FORMAT)
+    {
+        Avs3MixDec(hAvs3Dec, synth);
+    }
+
+    Avs3SynthOutputFloat(synth, frameLength, nChans, data);
+
+    hAvs3Dec->initFrame = 0;
+
+    return;
+}

@@ -16,6 +16,11 @@ with decoder fixes.
 
 - debug prints silenced on the library path (SDK left printf-based logging
   enabled, polluting stdout of every CLI consumer)
+- float synthesis output API (Avs3SynthOutputFloat / Avs3DecodeFloat /
+  avs3_decode_float): the SDK's only native output saturated its internal
+  float synthesis to s16 at unity gain, itself a clipping stage — hot
+  broadcast masters legitimately reconstruct above full scale; float output
+  preserves the excursions and defers range decisions downstream
 
 ## Licensing
 

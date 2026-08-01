@@ -10,6 +10,7 @@ extern "C" {
 	void avs3_destroy_decoder(AVS3DecoderHandle hAvs3Dec);
 	int parse_header(AVS3DecoderHandle hAvs3Dec, unsigned char* pData, int nLenIn, int isInitFrame, int *pnLenConsumed, unsigned short *crc);
 	int avs3_decode(AVS3DecoderHandle hAvs3Dec, unsigned char* pDataIN, int nLenIn, unsigned char* pDataOut, int *pnLenOut, int *pnLenConsumed);
+	int avs3_decode_float(AVS3DecoderHandle hAvs3Dec, unsigned char* pDataIN, int nLenIn, float* pDataOut, int *pnSamplesOut, int *pnLenConsumed);
 
 
 
