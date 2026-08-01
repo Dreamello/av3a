@@ -938,11 +938,22 @@ void RangeDecodeProcess(
 
             // decode value for each bit sections
             uint32_t overflow = 0;
+            int16_t overflowTooWide = 0;
             for (int32_t j = 0; j < widths; ++j) {
                 const uint32_t val = RangeDecodeSymbol(&rangeDecoderSt, overflowCdf, overflowCdfSize,
                     rangeCoderConfig->overflowWidth, input, inputLength, &inputPointer);
                 // concat each section of overflow
-                overflow |= val << (j * rangeCoderConfig->overflowWidth);
+                const int32_t shift = j * rangeCoderConfig->overflowWidth;
+                if (shift >= 32) {
+                    overflowTooWide = 1;
+                    continue;
+                }
+                overflow |= val << shift;
+            }
+
+            if (overflowTooWide) {
+                value = -rangeCoderConfig->offset[cdfIndex];
+                goto map_value;
             }
 
             // map positive values back to integer values
@@ -955,6 +966,7 @@ void RangeDecodeProcess(
             }
         }
 
+map_value:
         // Map values in 0..max_range range back to original integer range
         value += rangeCoderConfig->offset[cdfIndex];
         data[i] = value;

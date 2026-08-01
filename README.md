@@ -21,6 +21,9 @@ with decoder fixes.
   float synthesis to s16 at unity gain, itself a clipping stage — hot
   broadcast masters legitimately reconstruct above full scale; float output
   preserves the excursions and defers range decisions downstream
+- range decoder guards structurally impossible escape sequences (>= 32-bit
+  shift = C undefined behavior on corrupt bitstreams) by neutralizing the
+  latent instead
 
 ## Licensing
 
