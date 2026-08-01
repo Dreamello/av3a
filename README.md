@@ -24,6 +24,12 @@ with decoder fixes.
 - range decoder guards structurally impossible escape sequences (>= 32-bit
   shift = C undefined behavior on corrupt bitstreams) by neutralizing the
   latent instead
+- implausible-latent clamp: |latent| > 2^20 is zeroed after range decoding
+  (legitimate LC latents are structurally bounded near 2^15 by unnormalized
+  int16 PCM through a unity-gain MDCT with attenuate-only feature scaling;
+  the one observed corruption event decoded 7,930,568 and synthesized a
+  +34 dBFS tonal blast). Trips log to stderr and a durable file
+  ($AV3A_LATENT_LOG, default ~/Library/Logs/av3a-latent-clamp.log)
 
 ## Licensing
 

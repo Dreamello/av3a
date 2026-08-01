@@ -7,6 +7,71 @@
 #include "avs3_options.h"
 #include "avs3_stat_com.h"
 #include "avs3_prot_com.h"
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+
+/* ---- implausible-latent clamp (see patch 0003) ----
+ * Legitimate LC latents measured across >1M channel-decodes of real CCTV
+ * broadcast captures peak at |x| = 34,467 (three unrelated programs all
+ * ceiling near ~2^15). The one corruption event observed so far produced
+ * |x| = 7,930,568 (230x the legit ceiling) and a +34 dBFS tonal blast.
+ * Threshold 2^20 sits ~30x above the legit ceiling and ~7.6x below the
+ * observed corruption class. Action: zero the latent (recovers the frame;
+ * the remaining latents are unaffected and synthesize normal audio).
+ * History: an earlier upstream sweeper at |x| > 4,096 sat INSIDE the legit
+ * population and gutted loud dialogue; it was removed. This clamp is the
+ * recalibrated replacement, with the measurement table in the patch header.
+ */
+#define AVS3_LATENT_CLAMP_ABS 1048576  /* 2^20 */
+
+static void Avs3LogClampedLatent(long callIdx, int idx, int32_t val)
+{
+    static FILE *logFp = NULL;
+    static int logInit = 0;
+    fprintf(stderr, "[av3a] clamped implausible latent: call %ld idx %d value %d\n",
+            callIdx, idx, (int)val);
+    if (!logInit) {
+        logInit = 1;
+        const char *p = getenv("AV3A_LATENT_LOG");
+        char path[1024];
+        if (p != NULL && strcmp(p, "none") == 0) {
+            logFp = NULL;
+        } else if (p != NULL) {
+            logFp = fopen(p, "a");
+        } else {
+            const char *home = getenv("HOME");
+            if (home != NULL) {
+                snprintf(path, sizeof(path), "%s/Library/Logs/av3a-latent-clamp.log", home);
+                logFp = fopen(path, "a");
+            }
+        }
+    }
+    if (logFp != NULL) {
+        time_t now = time(NULL);
+        struct tm tmv;
+        localtime_r(&now, &tmv);
+        char ts[32];
+        strftime(ts, sizeof(ts), "%Y-%m-%dT%H:%M:%S%z", &tmv);
+        fprintf(logFp, "%s pid=%ld call=%ld idx=%d value=%d\n",
+                ts, (long)getpid(), callIdx, idx, (int)val);
+        fflush(logFp);
+    }
+}
+
+static void Avs3ClampImplausibleLatents(int32_t *latent, int16_t size)
+{
+    static long callIdx = 0;
+    for (int16_t i = 0; i < size; i++) {
+        if (latent[i] > AVS3_LATENT_CLAMP_ABS || latent[i] < -AVS3_LATENT_CLAMP_ABS) {
+            Avs3LogClampedLatent(callIdx, i, latent[i]);
+            latent[i] = 0;
+        }
+    }
+    callIdx++;
+}
+/* ---- end clamp ---- */
+
 
 
 /*
@@ -203,6 +268,8 @@ int16_t MdctDequantDecodeHyper(
     // perform range decoding
     RangeDecodeProcess(baseRcHandle, baseFlattenLatent, baseLatentSize, baseCdfIndex, baseBitstream, baseNumBytes);
 
+    Avs3ClampImplausibleLatents(baseFlattenLatent, baseLatentSize);
+
     // malloc and set quantized latent of base model
     baseQuantizedLatent = (int32_t *)malloc(sizeof(int32_t) * baseNumLatentEncode * baseNumLatentChannels);
     for (int16_t i = 0; i < baseNumLatentEncode; i++) {
@@ -384,6 +451,8 @@ int16_t MdctDequantDecodeHyperLc(
 
     // perform range decoding
     RangeDecodeProcess(baseRcHandle, baseFlattenLatent, baseLatentSize, baseCdfIndex, baseBitstream, baseNumBytes);
+
+    Avs3ClampImplausibleLatents(baseFlattenLatent, baseLatentSize);
 
     // malloc and set quantized latent of base model
     baseQuantizedLatent = (int32_t *)malloc(sizeof(int32_t) * baseNumLatentEncode * baseNumLatentChannels);
