@@ -30,7 +30,3 @@ with decoder fixes.
   the one observed corruption event decoded 7,930,568 and synthesized a
   +34 dBFS tonal blast). Trips log to stderr and a durable file
   ($AV3A_LATENT_LOG, default ~/Library/Logs/av3a-latent-clamp.log)
-
-## Licensing
-
-Research/educational use only; do not redistribute binaries.
